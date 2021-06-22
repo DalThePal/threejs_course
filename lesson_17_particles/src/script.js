@@ -41,26 +41,38 @@ const particleData = {
   radius: 1,
   widthSegments: 32,
   heightSegments: 32,
-  size: 0.02,
+  size: 0.1,
   sizeAttenuation: true,
-  numParticles: 500
+  numParticles: 5000
 }
 
 const particlesGeometry = new THREE.BufferGeometry()
 
 const positions = new Float32Array(particleData.numParticles * 3)
+const colors = new Float32Array(particleData.numParticles * 3)
 
 for (let i = 0; i < particleData.numParticles * 3; i++) {
   positions[i] = (Math.random() - 0.5) * 10
+  colors[i] = Math.random()
 }
 
 const particlePositions = new THREE.BufferAttribute(positions, 3)
+const particleColors = new THREE.BufferAttribute(colors, 3)
+
 particlesGeometry.setAttribute('position', particlePositions)
+particlesGeometry.setAttribute('color', particleColors)
 
 
 const particlesMaterial = new THREE.PointsMaterial({
   size: particleData.size,
-  sizeAttenuation: particleData.sizeAttenuation
+  sizeAttenuation: particleData.sizeAttenuation,
+  alphaMap: particleTextures[2],
+  transparent: true,
+  // alphaTest: 0.01,
+  // depthTest: false,
+  depthWrite: false,
+  blending: THREE.AdditiveBlending,
+  vertexColors: true 
 })
 
 const particles = new THREE.Points(particlesGeometry, particlesMaterial)
@@ -118,6 +130,16 @@ const clock = new THREE.Clock()
 const tick = () =>
 {
     const elapsedTime = clock.getElapsedTime()
+
+    // update particles
+    // particles.rotation.y = elapsedTime / 2
+    for (let i = 0; i < particleData.numParticles; i++) {
+      const i3 = i * 3
+      const x = particlesGeometry.attributes.position.array[i3 + 0]
+      particlesGeometry.attributes.position.array[i3 + 1] = Math.sin(elapsedTime + x)
+    }
+
+    particlesGeometry.attributes.position.needsUpdate = true
 
     // Update controls
     controls.update()
